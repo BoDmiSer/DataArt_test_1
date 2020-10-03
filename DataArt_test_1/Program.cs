@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using ImageMagick;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,26 +14,27 @@ namespace DataArt_test_1
     class Program
     {
         #region Properties
-        public static string PathFile { get; private set; }
-        public static string FileName { get; private set; } = "";
-
+        public static string ExtensionFile { get; private set; } = "";
         public static string FullName { get; private set; } = "";
+
         #endregion
 
         #region Constructor
         [STAThread]
         static void Main(string[] args)
         {
-            if (args.Length == 0)
+            if (args.Length != 0)
+            {
+                ConvertToGray(args[0]);
+            }
+            else
             {
                 while (FullName == "")
                 {
                     ReadFromTxt();
                 }
             }
-
-            ConvertToGray();
-
+            ConvertToGray("");
             Console.WriteLine("Save complited");
             Console.ReadKey();
         }
@@ -47,9 +49,9 @@ namespace DataArt_test_1
                 openFileDialog.Filter = "Text documents (.jpg)|*.jpg";
                 if (openFileDialog.ShowDialog() == true)
                 {
-                    PathFile = Path.GetDirectoryName(openFileDialog.FileName);
-                    FileName = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
-                    FullName = PathFile + "\\" + FileName;
+                    ExtensionFile = Path.GetExtension(openFileDialog.FileName);
+                    FullName = Path.GetDirectoryName(openFileDialog.FileName) + "\\"
+                               + Path.GetFileNameWithoutExtension(openFileDialog.FileName);
                 }
             }
             catch (Exception eReadFromTxt)
@@ -58,30 +60,21 @@ namespace DataArt_test_1
             }
         }
 
-        static void ConvertToGray()
+        static void ConvertToGray(string path)
         {
-
-            Bitmap myBitmap = new Bitmap(FullName+".jpg");
-            int x, y;
-            for (x = 0; x < myBitmap.Width; x++)
+            if (path != "")
             {
-                for (y = 0; y < myBitmap.Height; y++)
-                {
-                    Color getpixel = myBitmap.GetPixel(x, y);
-                    myBitmap.SetPixel(x, y, ChangeColor(getpixel.R, getpixel.G, getpixel.B));
-                }
+                string[] partPath;
+                partPath = path.Split('.');
+                FullName = partPath[0];
+                ExtensionFile = partPath[1];
             }
-            myBitmap.Save(FullName + "-result" + ".jpg");
+            using (var image = new MagickImage(FullName + ExtensionFile))
+            {
+                image.ColorSpace = ColorSpace.Gray;
+                image.Write(FullName + "-result" + ExtensionFile);
+            }
         }
-
-        static Color ChangeColor(byte R, byte G, byte B)
-        {
-            byte gray = (byte)((R + G + B)/3);
-            Color newColor = Color.FromArgb(gray, gray, gray);
-            //Console.WriteLine(R + " " + G + " " + B + "          " + gray + " " + gray + " " + gray);
-            return newColor;         
-        }
-        
         #endregion
     }
 }
