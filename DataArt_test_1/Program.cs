@@ -67,7 +67,7 @@ namespace DataArt_test_1
                 string[] partPath;
                 partPath = path.Split('.');
                 FullName = partPath[0];
-                ExtensionFile = partPath[1];
+                ExtensionFile = '.'+partPath[1];
             }
             using (var image = new MagickImage(FullName + ExtensionFile))
             {
